@@ -12,7 +12,7 @@ const Cars = () => {
   const isFetched = useRef(false);
   const [cars, setCars] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [carsPerPage] = useState(2);
+  const [carsPerPage, setCarsPerPage] = useState(3);
   const [totalItems, setTotalItems] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refetch, setRefetch] = useState(false);
@@ -30,23 +30,26 @@ const Cars = () => {
     if (!isFetched.current) {
       isFetched.current = true;
     } else {
+      const fetchCars = async () => {
+        const resp = await axiosWrapper(
+          `/cars?page=${currentPage}&itemsPerPage=${carsPerPage}`
+        );
+
+        if (resp?.status === 200) {
+          setCars(resp.data?.cars);
+          setTotalItems(resp.data?.totalItems);
+        }
+      };
       fetchCars();
     }
   }, [currentPage, carsPerPage, refetch]);
 
-  const fetchCars = async () => {
-    const resp = await axiosWrapper(
-      `/cars?page=${currentPage}&itemsPerPage=${carsPerPage}`
-    );
-
-    if (resp?.status === 200) {
-      setCars(resp.data?.cars);
-      setTotalItems(resp.data?.totalItems);
-    }
-  };
-
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+  const changeItemsPerPage = (value) => {
+    setCarsPerPage(value);
+    setCurrentPage(1);
   };
 
   return (
@@ -82,6 +85,7 @@ const Cars = () => {
         itemsPerPage={carsPerPage}
         totalItems={totalItems}
         paginate={paginate}
+        changeItemsPerPage={changeItemsPerPage}
         currentPage={currentPage}
       />
       <Modal

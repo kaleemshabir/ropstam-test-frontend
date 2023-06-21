@@ -4,7 +4,6 @@ import Pagination from "../components/Pagination";
 import Category from "../components/Category";
 import { toast } from "react-toastify";
 import Modal from "../components/Modal";
-
 import "../styles/Categories.css";
 
 const Categories = () => {
@@ -12,7 +11,7 @@ const Categories = () => {
   const isFetched = useRef(false);
   const [categories, setCategories] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [categoriesPerPage] = useState(2);
+  const [categoriesPerPage, setCategoriesPerPage] = useState(3);
   const [totalItems, setTotalItems] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refetch, setRefetch] = useState(false);
@@ -31,23 +30,26 @@ const Categories = () => {
     if (!isFetched.current) {
       isFetched.current = true;
     } else {
+      const fetchCategories = async () => {
+        const resp = await axiosWrapper(
+          `/categories?page=${currentPage}&itemsPerPage=${categoriesPerPage}`
+        );
+
+        if (resp?.status === 200) {
+          setCategories(resp.data?.categories);
+          setTotalItems(resp.data?.totalItems);
+        }
+      };
       fetchCategories();
     }
   }, [currentPage, categoriesPerPage, refetch]);
 
-  const fetchCategories = async () => {
-    const resp = await axiosWrapper(
-      `/categories?page=${currentPage}&itemsPerPage=${categoriesPerPage}`
-    );
-
-    if (resp?.status === 200) {
-      setCategories(resp.data?.categories);
-      setTotalItems(resp.data?.totalItems);
-    }
-  };
-
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
+  };
+  const changeItemsPerPage = (value) => {
+    setCategoriesPerPage(value);
+    setCurrentPage(1);
   };
   const createCategory = async () => {
     if (name.trim()) {
@@ -97,6 +99,7 @@ const Categories = () => {
         itemsPerPage={categoriesPerPage}
         totalItems={totalItems}
         paginate={paginate}
+        changeItemsPerPage={changeItemsPerPage}
         currentPage={currentPage}
       />
       <Modal
